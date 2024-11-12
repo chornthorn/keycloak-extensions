@@ -5,7 +5,7 @@
       "label": "Run Deployment Script",
       "type": "shell",
       "command": "bash",
-      "args": ["${workspaceFolder}/deployment.sh"],
+      "args": ["${workspaceFolder}/deployment"],
       "group": {
         "kind": "build",
         "isDefault": true
@@ -20,7 +20,7 @@
       "label": "Run Specific Deployment Script",
       "type": "shell",
       "command": "bash",
-      "args": ["${workspaceFolder}/deployment_specific.sh"],
+      "args": ["${workspaceFolder}/deployment_specific"],
       "group": {
         "kind": "build",
         "isDefault": true

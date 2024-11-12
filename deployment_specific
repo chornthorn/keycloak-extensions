@@ -7,11 +7,49 @@ KEYCLOAK_URL="http://localhost:8090"
 CONTAINER_NAME="keycloak-extensions-playground"
 MAX_HEALTH_CHECK_RETRIES=30
 HEALTH_CHECK_INTERVAL=2  # seconds between health checks
+MIN_JAVA_VERSION="17"
+MIN_MVN_VERSION="3"
 
 # Global variables for build tracking
 declare -A build_status
 declare -A build_times
 declare -A build_start_times
+
+# Check Java version
+echo "Checking Java version..."
+if ! command -v java &> /dev/null; then
+    echo "❌ Java is not installed"
+    exit 1
+fi
+
+CURRENT_JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
+if [ "$CURRENT_JAVA_VERSION" -lt "$MIN_JAVA_VERSION" ]; then
+    echo "❌ Java version too low. Required minimum version: $MIN_JAVA_VERSION, Found version: $CURRENT_JAVA_VERSION"
+    exit 1
+fi
+echo "✅ Java version $CURRENT_JAVA_VERSION verified (minimum required: $MIN_JAVA_VERSION)"
+
+# Check Maven installation and version
+echo "Checking Maven installation..."
+if ! command -v mvn &> /dev/null; then
+    echo "❌ Maven is not installed"
+    exit 1
+fi
+
+CURRENT_MVN_VERSION=$(mvn -v | grep "Apache Maven" | cut -d' ' -f3 | cut -d'.' -f1)
+if [ "$CURRENT_MVN_VERSION" -lt "$MIN_MVN_VERSION" ]; then
+    echo "❌ Maven version too low. Required minimum version: $MIN_MVN_VERSION, Found version: $CURRENT_MVN_VERSION"
+    exit 1
+fi
+echo "✅ Maven version $CURRENT_MVN_VERSION verified (minimum required: $MIN_MVN_VERSION)"
+
+# Check if Docker is running
+echo "Checking Docker status..."
+if ! docker info &> /dev/null; then
+    echo "❌ Docker is not running"
+    exit 1
+fi
+echo "✅ Docker is running"
 
 # Function to list directories with pom.xml
 list_projects() {
