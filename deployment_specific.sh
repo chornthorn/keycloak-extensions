@@ -13,52 +13,80 @@ declare -A build_status
 declare -A build_times
 declare -A build_start_times
 
-echo "Step 1: Building JAR files..."
-echo "Found following directories:"
-for dir in */ ; do
-    if [[ ! $dir =~ ^\. ]]; then
-        echo "📁 $dir"
+# Function to list directories with pom.xml
+list_projects() {
+    local count=1
+    echo "Available projects:"
+    echo "------------------------"
+    for d in */; do
+        if [ -f "${d}pom.xml" ]; then
+            echo "[$count] ${d%/}"
+            projects[$count]="${d}"
+            ((count++))
+        fi
+    done
+    echo "------------------------"
+}
+
+# Array to store project directories
+declare -A projects
+
+# List available projects
+list_projects
+
+# Prompt user for selection
+while true; do
+    read -p "Select project number to build (1-${#projects[@]}): " selection
+    
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le "${#projects[@]}" ]; then
+        dir="${projects[$selection]}"
+        break
+    else
+        echo "❌ Invalid selection. Please enter a number between 1 and ${#projects[@]}"
     fi
 done
 
+echo "Selected project: 📁 $dir"
+
+echo "Step 1: Building JAR file..."
+echo "Building directory: 📁 $dir"
+
 echo "\nStarting build process..."
-for dir in */ ; do
-    # Skip directories that start with a dot
-    if [[ ! $dir =~ ^\. ]]; then
-        if [ -f "${dir}pom.xml" ]; then
-            echo "\n📦 Building $dir..."
-            echo "=========================="
-            
-            # Record build start time
-            build_start_times["${dir%/}"]=$(date +%s)
-            
-            cd "$dir"
-            mvn clean package
-            build_result=$?
-            
-            # Calculate build duration
-            build_end_time=$(date +%s)
-            duration=$((build_end_time - build_start_times["${dir%/}"]))
-            
-            if [ $build_result -eq 0 ]; then
-                echo "✅ JAR build successful for $dir"
-                build_status["${dir%/}"]="Success"
-                build_times["${dir%/}"]="$(printf "%02d:%02d" $((duration/60)) $((duration%60)))"
-            else
-                echo "❌ JAR build failed for $dir"
-                build_status["${dir%/}"]="Failed"
-                build_times["${dir%/}"]="$(printf "%02d:%02d" $((duration/60)) $((duration%60)))"
-                exit 1
-            fi
-            cd ..
-            echo "==========================\n"
+if [[ ! $dir =~ ^\. ]]; then
+    if [ -f "${dir}pom.xml" ]; then
+        echo "\n📦 Building $dir..."
+        echo "=========================="
+        
+        # Record build start time
+        build_start_times["${dir%/}"]=$(date +%s)
+        
+        cd "$dir"
+        mvn clean package
+        build_result=$?
+        
+        # Calculate build duration
+        build_end_time=$(date +%s)
+        duration=$((build_end_time - build_start_times["${dir%/}"]))
+        
+        if [ $build_result -eq 0 ]; then
+            echo "✅ JAR build successful for $dir"
+            build_status["${dir%/}"]="Success"
+            build_times["${dir%/}"]="$(printf "%02d:%02d" $((duration/60)) $((duration%60)))"
         else
-            echo "⚠️  Skipping $dir - no pom.xml found"
-            build_status["${dir%/}"]="Skipped"
-            build_times["${dir%/}"]="--:--"
+            echo "❌ JAR build failed for $dir"
+            build_status["${dir%/}"]="Failed"
+            build_times["${dir%/}"]="$(printf "%02d:%02d" $((duration/60)) $((duration%60)))"
+            exit 1
         fi
+        cd ..
+        echo "==========================\n"
+    else
+        echo "⚠️  Skipping $dir - no pom.xml found"
+        build_status["${dir%/}"]="Skipped"
+        build_times["${dir%/}"]="--:--"
+        exit 1
     fi
-done
+fi
 
 echo "Step 1.1: Build Summary"
 echo "================================================================="

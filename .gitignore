@@ -25,7 +25,6 @@ logs/
 .classpath
 .project
 .settings/
-.vscode/
 
 # Package Files
 *.jar

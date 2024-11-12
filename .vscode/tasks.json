@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Deployment Script",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/deployment.sh"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    // Run Specific Deployment Script
+    {
+      "label": "Run Specific Deployment Script",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/deployment_specific.sh"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    }
+  ]
+}
